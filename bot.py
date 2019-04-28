@@ -22,11 +22,20 @@ def no_bg(message):
         headers={'X-Api-Key': config.bg_key},
     )
 
-    # with open('src/test-no-bg.png', 'wb') as f:
-    #     f.write(response.content)
+    # save a copy
+    name = message.document.file_name[0:message.document.file_name.rfind('.')]
+    dest = 'db/' + name + '.png'
+    with open(dest, 'wb') as f:
+        f.write(response.content)
 
     # send file
-    bot.send_document(message.chat.id, response.content)
+    bot.send_document(message.chat.id, open(dest, 'rb'))
+
+
+@bot.message_handler(content_types=['text'])
+def test(message):
+
+    bot.send_message(message.chat.id, 'Alive!')
 
 
 if __name__ == '__main__':
