@@ -1,1 +1,2 @@
-# telegram-bot-no-bg
+# photo-bot
+t.me/photo_terminator_bot
