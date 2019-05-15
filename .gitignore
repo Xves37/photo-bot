@@ -1,1 +1,5 @@
-db/*.png
+edited/*
+sent/*
+__pycache__
+.idea
+config.py
