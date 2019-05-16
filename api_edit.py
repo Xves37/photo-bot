@@ -2,8 +2,28 @@ import requests
 from config import bg_key
 
 
-def nobg(path):
+def file_saving(post, form):
+    def decor(func):
+        def wrapped(path):
+            img = func(path)
 
+            dest = path.replace('sent', 'edited')
+            dest = dest.replace(dest[dest.rfind('.')-1:], '.')
+            dest = dest + '-{post}.{form}'.format(post=post, form=form)
+
+            with open(dest, 'wb') as f:
+                f.write(img)
+                f.close()
+
+            return dest
+
+        return wrapped
+
+    return decor
+
+
+@file_saving('nobg', 'png')
+def nobg(path):
     with open(path, 'rb') as f:
         photo = f.read()
 

@@ -12,6 +12,10 @@ data = load_data('data.json')
 cmd_dict, do_list = data['commands'], data['info']['do']
 
 
+def send(chat_id, msg):
+    bot.send_message(chat_id, msg)
+
+
 @bot.message_handler(commands=['do'])
 def command_change(message):
     global do_cmd, do_arg
@@ -19,44 +23,53 @@ def command_change(message):
 
     msg = message.text.split(' ')
     n = len(msg)
+
+    # /do without any command
     if n < 2:
-        bot.send_message(chat, 'Please, enter a command. To take a list of available commands write: /do list')
+        send(chat, 'Please, enter a command. To take a list of available commands write: /do list')
         return
+
+    # sys commands (list, check)
     elif msg[1] == 'list':
         str_list = ' '
         for cmd in cmd_dict['do'].keys():
             defin = cmd_dict['do'][cmd]['doc']
             str_list += '/do {cmd} : {defin}\n'.format(cmd=cmd, defin=defin)
 
-        print(str_list)
-        bot.send_message(chat, str_list)
+        send(chat, str_list)
     elif msg[1] == 'check':
         if do_cmd:
-            bot.send_message(chat, 'Current command: "{0}"'.format(do_cmd))
+            send(chat, 'Current command: "{0}"'.format(do_cmd))
             if do_arg:
-                bot.send_message(chat, 'Current argument: "{0}"'.format(do_arg))
+                send(chat, 'Current argument: "{0}"'.format(do_arg))
         else:
-            bot.send_message(chat, 'Command is not selected!')
+            send(chat, 'Command was not selected!')
+
+    # save a command
     elif msg[1] in do_list['all']:
         do_cmd = msg[1]
         do_arg = ''
 
-        bot.send_message(chat, 'Command "{cmd}" is selected.'.format(cmd=do_cmd))
+        send(chat, 'Command "{cmd}" was selected.'.format(cmd=do_cmd))
 
+        # save an angrument
         if n > 2 and cmd_dict['do'][do_cmd]['arg']:
             do_arg = msg[2]
-            bot.send_message(chat, 'With an argument "{arg}"'.format(arg=do_arg))
+            send(chat, 'With an argument "{arg}"'.format(arg=do_arg))
         elif n < 3 and cmd_dict['do'][do_cmd]['arg']:
-            bot.send_message(chat, 'You can add an argument to this command. Here is a command documentation:'.format(arg=do_arg))
-            bot.send_message(chat, cmd_dict['do'][do_cmd]['doc'])
+            send(chat, 'You can add an argument to this command. /'
+                       'Here is a command documentation:\n{doc}'.format(doc=cmd_dict['do'][do_cmd]['doc']))
+
+    # command not found
     else:
-        bot.send_message(chat, 'Command "{cmd}" is not found'.format(cmd=msg[1]))
+        send(chat, 'Command "{cmd}" was not found'.format(cmd=msg[1]))
 
 
 @bot.message_handler(content_types=['document', 'photo'])
 def edit(message):
+    chat = message.chat.id
+    dest = 'src/error.jpg'
     if do_cmd:
-        chat = message.chat.id
 
         # status
         bot.send_chat_action(chat, 'upload_photo')
@@ -66,23 +79,18 @@ def edit(message):
         url = 'https://api.telegram.org/file/bot{token}/{path}'.format(token=token, path=path)
         response = requests.get(url)
 
+        # saving file that was sent
         name = message.document.file_name
         with open('sent/' + name, 'wb') as f:
             f.write(response.content)
             f.close()
 
+        # api commands handler
         if do_cmd in do_list['api-list']:
-            # command handler
             if do_cmd == 'nobg':
-                photo = nobg('sent/' + name)
+                dest = nobg('sent/' + name)
 
-            # save a copy
-            name = name[0:message.document.file_name.rfind('.')]
-            dest = 'edited/' + name + '-' + do_cmd + '.png'
-            with open(dest, 'wb') as f:
-                f.write(photo)
-                f.close()
-
+        # pil commands handler
         elif do_cmd in do_list['pil-list']:
             src = 'sent/' + name
             if do_cmd == 'blur':
@@ -96,16 +104,16 @@ def edit(message):
             elif do_cmd == 'sharpen':
                 dest = sharpen(src)
 
-        # send file
+        # send file to user
         bot.send_document(chat, open(dest, 'rb'))
 
     else:
-        bot.send_message(message.chat.id, 'Command is not selected!')
+        send(chat, 'Command is not selected!')
 
 
 @bot.message_handler(commands=['help'])
 def help_msg(message):
-    bot.send_message(message.chat.id, str(data['info']['help']))
+    send(message.chat.id, str(data['info']['help']))
 
 
 if __name__ == '__main__':
