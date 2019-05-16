@@ -52,7 +52,7 @@ def command_change(message):
 
         send(chat, 'Command "{cmd}" was selected.'.format(cmd=do_cmd))
 
-        # save an angrument
+        # save an argument
         if n > 2 and cmd_dict['do'][do_cmd]['arg']:
             do_arg = msg[2]
             send(chat, 'With an argument "{arg}"'.format(arg=do_arg))
@@ -69,18 +69,26 @@ def command_change(message):
 def edit(message):
     chat = message.chat.id
     dest = 'src/error.jpg'
+
     if do_cmd:
 
         # status
         bot.send_chat_action(chat, 'upload_photo')
 
+        # document or photo validation
+        if message.content_type == 'document':
+            path = bot.get_file(message.document.file_id).file_path
+            name = message.document.file_name
+        else:
+            file_id = bot.get_file(message.photo[-1].file_id)
+            path = file_id.file_path
+            name = file_id.file_id + '.jpg'
+
         # telegram file downloading
-        path = bot.get_file(message.document.file_id).file_path
         url = 'https://api.telegram.org/file/bot{token}/{path}'.format(token=token, path=path)
         response = requests.get(url)
 
         # saving file that was sent
-        name = message.document.file_name
         with open('sent/' + name, 'wb') as f:
             f.write(response.content)
             f.close()
