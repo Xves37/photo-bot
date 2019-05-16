@@ -13,12 +13,11 @@ def print_data():
 
 
 def info_reload(data):
-    sys_keys = list(data['info']['do']['api-list'])
-    api_keys = list(data['info']['do']['pil-list'])
-    pil_keys = list(data['info']['do']['sys-list'])
-    keys = tuple(sys_keys + api_keys + pil_keys)
+    sys_keys = list(data['info']['do']['sys-list'])
+    api_keys = list(data['info']['do']['api-list'])
+    pil_keys = list(data['info']['do']['pil-list'])
 
-    data['info']['do']['all'] = keys
+    data['info']['do']['all'] = sys_keys + api_keys + pil_keys
 
     return data
 
@@ -44,5 +43,4 @@ if __name__ == '__main__':
     data_dict = info_reload(data_dict)
 
     dump_data(data_dict, data_path)
-    help(json.dump)
     print_data()

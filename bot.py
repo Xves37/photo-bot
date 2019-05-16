@@ -1,7 +1,7 @@
 import telebot
 import requests
 from api_edit import nobg
-from pil_edit import blur, gauss_blur, contour
+from pil_edit import blur, gauss_blur, contour, sharpen, smooth
 from data import load_data
 from config import token
 
@@ -37,19 +37,20 @@ def command_change(message):
                 bot.send_message(chat, 'Current argument: "{0}"'.format(do_arg))
         else:
             bot.send_message(chat, 'Command is not selected!')
-    else:
+    elif msg[1] in do_list['all']:
         do_cmd = msg[1]
         do_arg = ''
 
-        bot.send_message(chat, 'Command "{cmd}" if selected.'.format(cmd=do_cmd))
+        bot.send_message(chat, 'Command "{cmd}" is selected.'.format(cmd=do_cmd))
 
-        if cmd_dict['do'][do_cmd]['arg']:
-            if n > 2:
-                do_arg = msg[2]
-                bot.send_message(chat, 'With an argument "{arg}"'.format(arg=do_arg))
-            else:
-                bot.send_message(chat, 'You can add an argument to this command. Here is a command documentation:'.format(arg=do_arg))
-                bot.send_message(chat, cmd_dict['do'][do_cmd]['doc'])
+        if n > 2 and cmd_dict['do'][do_cmd]['arg']:
+            do_arg = msg[2]
+            bot.send_message(chat, 'With an argument "{arg}"'.format(arg=do_arg))
+        elif n < 3 and cmd_dict['do'][do_cmd]['arg']:
+            bot.send_message(chat, 'You can add an argument to this command. Here is a command documentation:'.format(arg=do_arg))
+            bot.send_message(chat, cmd_dict['do'][do_cmd]['doc'])
+    else:
+        bot.send_message(chat, 'Command "{cmd}" is not found'.format(cmd=msg[1]))
 
 
 @bot.message_handler(content_types=['document', 'photo'])
@@ -87,9 +88,13 @@ def edit(message):
             if do_cmd == 'blur':
                 dest = blur(src)
             elif do_cmd == 'gauss-blur':
-                dest = gauss_blur(src)
+                dest = gauss_blur(src, do_arg)
             elif do_cmd == 'contour':
                 dest = contour(src)
+            elif do_cmd == 'smooth':
+                dest = smooth(src)
+            elif do_cmd == 'sharpen':
+                dest = sharpen(src)
 
         # send file
         bot.send_document(chat, open(dest, 'rb'))

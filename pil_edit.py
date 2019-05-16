@@ -6,13 +6,17 @@ def file_saving(post):
         def wrapped(path, arg=None):
             img = Image.open(path)
 
-            if arg:
+            if arg is not None:
                 img = func(img, arg)
             else:
                 img = func(img)
 
             dest = path.replace('sent', 'edited')
-            dest = dest.replace('.', '-' + post + '.')
+
+            if arg is not None:
+                dest = dest.replace('.', '-{post}-{arg}.'.format(post=post, arg=arg))
+            else:
+                dest = dest.replace('.', '-{post}.'.format(post=post))
 
             img.save(dest)
 
@@ -31,6 +35,21 @@ def contour(img):
     return img.filter(ImageFilter.CONTOUR)
 
 
+@file_saving(post='smooth')
+def smooth(img):
+    return img.filter(ImageFilter.SMOOTH)
+
+
+@file_saving(post='sharpen')
+def sharpen(img):
+    return img.filter(ImageFilter.SHARPEN)
+
+
 @file_saving(post='Gauss-blur')
 def gauss_blur(img, arg=10):
+    arg = float(arg)
     return img.filter(ImageFilter.GaussianBlur(radius=arg))
+
+
+if __name__ == '__main__':
+    help(ImageFilter)
