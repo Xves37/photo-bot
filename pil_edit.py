@@ -51,5 +51,11 @@ def gauss_blur(img, arg=10):
     return img.filter(ImageFilter.GaussianBlur(radius=arg))
 
 
+@file_saving(post='rotate')
+def rotate(img, arg=90):
+    arg = float(arg)
+    return img.rotate(arg)
+
+
 if __name__ == '__main__':
     help(ImageFilter)

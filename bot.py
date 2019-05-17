@@ -1,7 +1,7 @@
 import telebot
 import requests
 from api_edit import nobg
-from pil_edit import blur, gauss_blur, contour, sharpen, smooth
+from pil_edit import blur, gauss_blur, contour, sharpen, smooth, rotate
 from data import load_data
 from config import token
 
@@ -111,6 +111,8 @@ def edit(message):
                 dest = smooth(src)
             elif do_cmd == 'sharpen':
                 dest = sharpen(src)
+            elif do_cmd == 'rotate':
+                dest = rotate(src, do_arg)
 
         # send file to user
         bot.send_document(chat, open(dest, 'rb'))
